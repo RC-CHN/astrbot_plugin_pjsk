@@ -1,0 +1,26 @@
+{
+    "pjsk_req_retry": {
+        "description": "请求重试次数",
+        "type": "int",
+        "default": 1,
+        "hint": "下载资源失败时的重试次数"
+    },
+    "pjsk_req_timeout": {
+        "description": "请求超时时间",
+        "type": "int",
+        "default": 10,
+        "hint": "下载资源的超时时间（秒）"
+    },
+    "pjsk_use_cache": {
+        "description": "使用缓存",
+        "type": "bool",
+        "default": true,
+        "hint": "是否缓存生成的表情图片"
+    },
+    "pjsk_clear_cache": {
+        "description": "清理缓存",
+        "type": "bool",
+        "default": false,
+        "hint": "启动时是否清理所有缓存"
+    }
+}
