@@ -122,12 +122,19 @@ class PJSKPlugin(Star):
         self._initialized = False
         # Update global config with AstrBot config
         if config:
-            plugin_config._config = config
+            plugin_config.update_config(config)
     
     async def initialize(self):
         """Initialize plugin - download resources and install playwright browser."""
+        from astrbot.api.star import StarTools
+        from .resource import init_data_folder
+        
         logger.info("正在初始化 PJSK 表情插件...")
         try:
+            # Initialize data folder with AstrBot's data directory
+            data_dir = StarTools.get_data_dir("astrbot_plugin_pjsk")
+            init_data_folder(data_dir)
+            
             # Install playwright browser if not exists
             await self._ensure_playwright_browser()
             # Download resources
@@ -140,7 +147,7 @@ class PJSKPlugin(Star):
     
     async def _ensure_playwright_browser(self):
         """Install playwright chromium browser if not installed."""
-        import subprocess
+        import asyncio
         import sys
         import platform
         
@@ -163,33 +170,35 @@ class PJSKPlugin(Star):
         if platform.system() == "Linux":
             logger.info("正在安装 Playwright 系统依赖...")
             try:
-                result = subprocess.run(
-                    [sys.executable, "-m", "playwright", "install-deps", "chromium"],
-                    capture_output=True,
-                    text=True,
-                    timeout=300
+                proc = await asyncio.create_subprocess_exec(
+                    sys.executable, "-m", "playwright", "install-deps", "chromium",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
                 )
-                if result.returncode == 0:
+                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
+                if proc.returncode == 0:
                     logger.info("Playwright 系统依赖安装成功")
                 else:
-                    logger.warning(f"Playwright 系统依赖安装可能有问题: {result.stderr}")
+                    logger.warning(f"Playwright 系统依赖安装可能有问题: {stderr.decode()}")
+            except asyncio.TimeoutError:
+                logger.warning("Playwright 系统依赖安装超时")
             except Exception as e:
                 logger.warning(f"Playwright 系统依赖安装失败 (可能需要 sudo): {e}")
         
         # Install chromium
         logger.info("正在安装 Playwright chromium 浏览器...")
         try:
-            result = subprocess.run(
-                [sys.executable, "-m", "playwright", "install", "chromium"],
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minutes timeout
+            proc = await asyncio.create_subprocess_exec(
+                sys.executable, "-m", "playwright", "install", "chromium",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
-            if result.returncode == 0:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
+            if proc.returncode == 0:
                 logger.info("Playwright chromium 安装成功")
             else:
-                logger.warning(f"Playwright 安装可能有问题: {result.stderr}")
-        except subprocess.TimeoutExpired:
+                logger.warning(f"Playwright 安装可能有问题: {stderr.decode()}")
+        except asyncio.TimeoutError:
             logger.error("Playwright 安装超时")
         except Exception as e:
             logger.error(f"Playwright 安装失败: {e}")

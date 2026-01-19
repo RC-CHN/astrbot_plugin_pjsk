@@ -28,6 +28,11 @@ class PluginConfig:
     def __init__(self, config_dict=None):
         self._config = config_dict or DEFAULT_CONFIG
     
+    def update_config(self, config_dict):
+        """Update configuration with new values."""
+        if config_dict:
+            self._config = config_dict
+    
     @property
     def pjsk_req_retry(self) -> int:
         return self._config.get("pjsk_req_retry", DEFAULT_CONFIG["pjsk_req_retry"])
@@ -59,3 +64,4 @@ class PluginConfig:
 
 # Global config instance (will be updated by main.py)
 config = PluginConfig()
+

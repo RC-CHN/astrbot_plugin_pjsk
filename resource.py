@@ -17,17 +17,16 @@ from .utils import ResponseType, append_prefix, async_request, with_semaphore
 # Plugin directory
 PLUGIN_DIR = Path(__file__).parent
 
-# Data folder - use AstrBot's data directory pattern
-DATA_FOLDER = Path.cwd() / "data" / "pjsk"
-FONT_FOLDER = DATA_FOLDER / "fonts"
-RESOURCE_FOLDER = DATA_FOLDER / "resource"
-STICKER_INFO_CACHE = DATA_FOLDER / "characters.json"
+# Data folder - will be initialized by init_data_folder()
+DATA_FOLDER: Optional[Path] = None
+FONT_FOLDER: Optional[Path] = None
+RESOURCE_FOLDER: Optional[Path] = None
+STICKER_INFO_CACHE: Optional[Path] = None
+CACHE_FOLDER: Optional[Path] = None
+FONT_PATH: Optional[Path] = None
 
-CACHE_FOLDER = DATA_FOLDER / "cache"
-
-# Try to use bundled font first, fallback to data folder
+# Try to use bundled font first
 BUNDLED_FONT_PATH = PLUGIN_DIR / "fonts" / "YurukaFangTang.ttf"
-FONT_PATH = BUNDLED_FONT_PATH if BUNDLED_FONT_PATH.exists() else FONT_FOLDER / "YurukaFangTang.ttf"
 
 # Templates folder - bundled with plugin
 TEMPLATES_FOLDER = PLUGIN_DIR / "templates"
@@ -36,6 +35,25 @@ JINJA_ENV = jinja2.Environment(
     autoescape=jinja2.select_autoescape(["html", "xml"]),
     enable_async=True,
 )
+
+
+def init_data_folder(data_dir: Path = None):
+    """Initialize data folder paths. Called from main.py with StarTools.get_data_dir()."""
+    global DATA_FOLDER, FONT_FOLDER, RESOURCE_FOLDER, STICKER_INFO_CACHE, CACHE_FOLDER, FONT_PATH
+    
+    if data_dir:
+        DATA_FOLDER = data_dir
+    else:
+        # Fallback for testing
+        DATA_FOLDER = Path.cwd() / "data" / "pjsk"
+    
+    FONT_FOLDER = DATA_FOLDER / "fonts"
+    RESOURCE_FOLDER = DATA_FOLDER / "resource"
+    STICKER_INFO_CACHE = DATA_FOLDER / "characters.json"
+    CACHE_FOLDER = DATA_FOLDER / "cache"
+    
+    # Use bundled font if exists, otherwise use data folder
+    FONT_PATH = BUNDLED_FONT_PATH if BUNDLED_FONT_PATH.exists() else FONT_FOLDER / "YurukaFangTang.ttf"
 
 
 def make_cache_key(obj: Any) -> str:
